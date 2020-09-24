@@ -12,7 +12,7 @@ struct Node
 
 class Queue
 {
-private:
+protected:
     Node *rear = NULL;
     Node *front = NULL;
     int queueSize = 0;
@@ -43,7 +43,7 @@ public:
         }
         // cout << score << endl;
         queueSize += 1;
-        cout << "queue size:" << queueSize << endl;
+        // cout << "queue size:" << queueSize << endl;
     }
 
     //Retira do início
@@ -94,84 +94,58 @@ public:
         return rear->score;
     }
 
-    void makeSubscription(string id, int score) {
+    void makeSubscription(string id, int score, bool shouldPrint) {
         bool foundId = false;
         if (isEmpty()) {
             enqueue(id, score);
-            return;
+            if (shouldPrint) 
+                cout << score << endl;
         }
         else {
             Node *ptr = front;
             do 
             {
                 if(ptr->id == id) {
+                    if (shouldPrint) 
+                        cout << ptr->score << endl;
+
                     ptr->score = score;
                     foundId = true;
-                    // free(ptr);
-                    return;
+                    break;
                 }
-                else ptr = ptr->link;
-            }while (ptr->link != NULL);
-            // free(ptr);
+                else if (ptr->link != NULL)
+                    ptr = ptr->link;
+            } while (ptr->link != NULL);
+            //Dessa forma o último valor assumido por ptr será o último elemento,
+            //Você poderia fazer colocando dentro do while só ptr != NULL e o último else if ser só um else
             if (!foundId) {
                 enqueue(id,score);
+                if (shouldPrint) 
+                    cout << score << endl;
             }
-            // return false;
         }
+    }
+
+    void listChannels() {
+
     }
 };
 
-//Isso vai ficar feioso pois você ia ter que colocar o id do user e do channel
-void makeSubscription(string id, int score, Queue& userQueue, Queue &channelQueue) {
-        bool foundId = false;
-        if (userQueue.isEmpty()) {
-            userQueue.enqueue(id, score);
-        }
-        else {
-            Node *ptr = userQueue.getFront();
-            while (ptr->link != NULL)
-            {
-                if(ptr->id == id) {
-                    ptr->score = score;
-                    foundId = true;
-                    // free(ptr);
+class UserQueue : public Queue
+{
+private:
+    /* data */
+public:
+    
+};
 
-                }
-                else 
-                    ptr = ptr->link;
-            }
-            // free(ptr);
-            if (!foundId) {
-                userQueue.enqueue(id,score);
-            }
-            // return false;
-        }
-        if (channelQueue.isEmpty()) {
-            channelQueue.enqueue(id, score);
-            cout << score << endl;
-        }
-        else {
-            Node *ptr = channelQueue.getFront();
-            while (ptr->link != NULL)
-            {
-                if(ptr->id == id) {
-                    cout << score << endl;
-                    ptr->score = score;
-                    foundId = true;
-                    // free(ptr);
-
-                }
-                else 
-                    ptr = ptr->link;
-            }
-            // free(ptr);
-            if (!foundId) {
-                channelQueue.enqueue(id,score);
-                cout << score << endl;
-            }
-            // return false;
-        }
-    }
+class ChannelQueue : public Queue
+{
+private:
+    /* data */
+public:
+    
+};
 
 int hash_func(string key) {
     int hashValue = 0;
@@ -196,7 +170,8 @@ int hash_func(string key) {
 
 int main(int argc, char const *argv[])
 {
-    Queue users[9343], channels[9343];
+    ChannelQueue channels[9343];
+    UserQueue users[9343];
     string fstWord="", userId="", channelId="";
     int score;
 
@@ -209,10 +184,10 @@ int main(int argc, char const *argv[])
             cin >> channelId;
             cin >> score;
             
-            users[hash_func(userId)].makeSubscription(channelId, score);
-            channels[hash_func(channelId)].makeSubscription(userId, score);
+            users[hash_func(userId)].makeSubscription(channelId, score, true);
+            channels[hash_func(channelId)].makeSubscription(userId, score, false);
 
-            cout << channels[hash_func(channelId)].lastScore() << endl;
+            // cout << channels[hash_func(channelId)].lastScore() << endl;
 
         }
         //Terei que criar uma função para percorrer o array 
