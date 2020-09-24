@@ -81,7 +81,7 @@ public:
         
     }
 
-    int getSize()
+    int getQueueSize()
     {
         return queueSize;
     }
@@ -126,9 +126,6 @@ public:
         }
     }
 
-    void listChannels() {
-
-    }
 };
 
 class UserQueue : public Queue
@@ -136,7 +133,25 @@ class UserQueue : public Queue
 private:
     /* data */
 public:
-    
+    void listChannels() {
+        if (isEmpty())
+            cout << "0" << endl;
+        else {
+            Node *ptr = front;
+            do
+            {
+                cout << ptr->id << " ";
+                ptr = ptr->link;
+            } while (ptr != NULL);
+            cout << endl;
+        }
+    }
+
+    void scoreInChannel(string channelId) {
+        if (isEmpty()) {
+            cout << "0" << endl;
+        }
+    }
 };
 
 class ChannelQueue : public Queue
@@ -158,15 +173,6 @@ int hash_func(string key) {
     int hashKey = hashValue % 9343;
     return hashKey;
 }
-
-
-
-// void new_subscription(string userId, string channelId, int score) {
-//     //Adiciona um id de user e um score a uma posição do hash de channels    
-    
-//     //Adiciona um id de channel e um score a uma posição do hash de users
-// }
-
 
 int main(int argc, char const *argv[])
 {
@@ -193,11 +199,14 @@ int main(int argc, char const *argv[])
         //Terei que criar uma função para percorrer o array 
         else if(fstWord == "CHN") {
             cin >> userId;
+            users[hash_func(userId)].listChannels();
             
         }
         //Terei que guardar o valor 
         else if(fstWord == "USR") {
             cin >> channelId;
+
+            cout << channels[hash_func(channelId)].getQueueSize() << endl;
             
         }
         else if(fstWord == "SCO") {
