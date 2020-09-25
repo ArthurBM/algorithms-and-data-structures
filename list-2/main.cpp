@@ -1,8 +1,9 @@
 #include <bits/stdc++.h>
+// #include <string>
 #define endl '\n'
 
 using namespace std;
-// Primo grande: 9343
+// Primo grande: 151
 struct Node
 {
     string id;
@@ -49,7 +50,7 @@ public:
     //Retira do início
     void dequeue()
     {
-        if (isEmpty()) cout << "NULL" << endl;
+        if (isEmpty()) return;
         
         else
         {
@@ -106,16 +107,18 @@ public:
             do 
             {
                 if(ptr->id == id) {
-                    if (shouldPrint) 
+                        
+                    if (shouldPrint) {
                         cout << ptr->score << endl;
+                    }
 
                     ptr->score = score;
                     foundId = true;
                     break;
                 }
-                else if (ptr->link != NULL)
+                else //if (ptr->link != NULL)
                     ptr = ptr->link;
-            } while (ptr->link != NULL);
+            } while (ptr!= NULL);
             //Dessa forma o último valor assumido por ptr será o último elemento,
             //Você poderia fazer colocando dentro do while só ptr != NULL e o último else if ser só um else
             if (!foundId) {
@@ -147,9 +150,35 @@ public:
         }
     }
 
-    void scoreInChannel(string channelId) {
+    void scoreChannel(string channelId) {
+        bool foundChannel = false;
         if (isEmpty()) {
             cout << "0" << endl;
+        }
+
+        else {
+            Node *ptr = front;
+            do
+            {
+                if(ptr->id == channelId) {
+                    foundChannel = true;
+                    cout << ptr->score << endl;
+                    break;
+                }
+                else
+                    ptr = ptr->link;
+            } while (ptr != NULL);
+
+            if (!foundChannel)
+                cout << "0" << endl;
+            
+        }
+    }
+
+    void deleteAllElements() {
+        while (!isEmpty()) {
+            cout << queueSize << endl;
+            dequeue();
         }
     }
 };
@@ -159,7 +188,33 @@ class ChannelQueue : public Queue
 private:
     /* data */
 public:
-    
+    void deleteUser(string userId) {
+        if (isEmpty()) {
+            return;
+        }
+        if (queueSize == 1) {
+            dequeue();
+            return;
+        }
+        else {
+            Node *cursor = front;
+            Node *previousCursor = front;
+            do
+            {
+                //Isso está deletando um nó e consertando a configuração da fila
+                //Como se fosse um list-delete
+                if ((cursor->link)->id == userId) {
+                    Node *ptr = cursor->link;
+                    cursor->link = ptr->link;
+                    free(ptr);
+                    queueSize-=1;
+                }
+                else
+                    cursor = cursor->link;
+            } while (cursor != NULL);
+            
+        }
+    }
 };
 
 int hash_func(string key) {
@@ -170,14 +225,14 @@ int hash_func(string key) {
     //Por exemplo: '2' vai ser transformado em 50, conforme a tabela
     for(int j = 0; j < key.length(); j++ ) hashValue += key[j];
 
-    int hashKey = hashValue % 9343;
+    int hashKey = hashValue % 151;
     return hashKey;
 }
 
 int main(int argc, char const *argv[])
 {
-    ChannelQueue channels[9343];
-    UserQueue users[9343];
+    ChannelQueue channels[151];
+    UserQueue users[151];
     string fstWord="", userId="", channelId="";
     int score;
 
@@ -194,7 +249,6 @@ int main(int argc, char const *argv[])
             channels[hash_func(channelId)].makeSubscription(userId, score, false);
 
             // cout << channels[hash_func(channelId)].lastScore() << endl;
-
         }
         //Terei que criar uma função para percorrer o array 
         else if(fstWord == "CHN") {
@@ -212,9 +266,18 @@ int main(int argc, char const *argv[])
         else if(fstWord == "SCO") {
             cin >> userId;
             cin >> channelId;
+
+            users[hash_func(userId)].scoreChannel(channelId);
         }
         else if(fstWord == "RMU") {
             cin >> userId;
+
+            users[hash_func(userId)].deleteAllElements();
+
+            for (int i = 0; i < 151; i++) {
+                string key = to_string(i);
+                channels[hash_func(key)].deleteUser(userId);
+            }
         }
 
         userId = "";
