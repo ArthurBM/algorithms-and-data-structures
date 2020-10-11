@@ -8,6 +8,7 @@ struct Node
 {
     Node* left;
     Node* right;
+    Node* father;
     int value;
 };
 
@@ -55,16 +56,21 @@ Node* insert(Node* root, int element) {
         ptr->value = element;
         ptr->left = NULL;
         ptr->right = NULL;
+        ptr->father = NULL;
         return ptr;
     }
     else if (element < root->value) {
         height++;
         root->left = insert(root->left, element);
+        if (root->left != NULL)
+            root = (root->left)->father;
         return root;
     }
     else if (element > root->value) {
         height++;
         root->right = insert(root->right, element);
+        if (root->right != NULL)
+            root = (root->right)->father;
         return root;
     }
     //Se for igual
@@ -142,19 +148,19 @@ void pre_order(Node* root) {
     pre_order(root->right);
 }
 
-void printInorder(struct Node* root) 
+void in_order(struct Node* root) 
 { 
     if (root == NULL) 
         return; 
   
     /* first recur on left child */
-    printInorder(root->left); 
+    in_order(root->left); 
   
     /* then print the data of root */
     cout << root->value << " "; 
   
     /* now recur on right child */
-    printInorder(root->right); 
+    in_order(root->right); 
 } 
 
 
@@ -249,9 +255,9 @@ int main(int argc, char const *argv[])
             tree1.root = insert(tree1.root, treeValue);
             cout << height << endl;
             height = 0;
-            if (bst_search(tree1.root, treeValue) != NULL){
+            if (bst_search(tree1.root, treeValue) != NULL)
                 tree1.root = splay(tree1.root, treeValue);
-            }
+            
         }
         else if (fstWord == "DEL") {
             cin >> treeValue;
@@ -263,7 +269,7 @@ int main(int argc, char const *argv[])
             height = 0;
             pre_order(tree1.root);
             cout << "\n";
-            printInorder(tree1.root);
+            in_order(tree1.root);
             cout << "\n";
         }
     }
