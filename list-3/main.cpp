@@ -32,8 +32,23 @@ void find(Node* root,  int element) {
         find(root->right, element);
     }
 }
+Node* bst_search(Node* root,  int element) {
+    if (root == NULL)
+        return NULL;
+    else if (element == root->value) {
+        return root;
+    }
+    else if (element < root->value) {
+        height++;
+        return bst_search(root->left, element);
+    }
+    //(element > root->value)
+    else {
+        height++;
+        return bst_search(root->right, element);
+    }
+}
 
-//Não vai precisar dessa maracutaia toda aí dentro, vou fazer o splay como um método separado mesmo
 Node* insert(Node* root, int element) {
     if (root == NULL) {
         Node* ptr = new Node();
@@ -118,8 +133,95 @@ Node* bst_delete(Node* root, int element) {
     }
 }
 
+void pre_order(Node* root) {
+    if (root == NULL) {
+        return;
+    }
+    cout << root->value << " ";
+    pre_order(root->left);
+    pre_order(root->right);
+}
 
-void splay(Node* root, int element) {
+void printInorder(struct Node* root) 
+{ 
+    if (root == NULL) 
+        return; 
+  
+    /* first recur on left child */
+    printInorder(root->left); 
+  
+    /* then print the data of root */
+    cout << root->value << " "; 
+  
+    /* now recur on right child */
+    printInorder(root->right); 
+} 
+
+
+
+Node* rotate_left(Node* root) {
+    Node* ptr = root->right;
+    root->right = ptr->left;
+    ptr->left = root;
+    return ptr;
+}
+
+Node* rotate_right(Node* root) {
+    Node* ptr = root->left;
+    root->left = ptr->right;
+    ptr->right = root;
+    return ptr;
+}
+
+//Lembre que se o algoritmo não achar o valor desejado ele retorna o último valor acessado
+//NA MAIN, COLOQUE UMA CHECAGEM SE O ELEMENTO FOI ACHADO
+Node* splay(Node* root, int element) {
+    if (root == NULL || root->value == element)
+        return root;
+
+    //Left
+    if (element < root->value) {
+        //O elemento não está na árvore
+        if (root->left == NULL) {
+            return root;
+        }
+        //Left - Left
+        if (element < (root->left)->value) {
+            //This first part is just to get to the desired element
+            (root->left)->left = splay((root->left)->left, element);
+            //PODE DAR ERRADO AQUI (Acho que tá de boa mesmo, pois não fica um ponteiro apontando pra outro. 
+            //Na prática root aponta para o mesmo endereço de memória de rotate_right(root)
+            root = rotate_right(root);
+        }
+        //Left - Right
+        else if (element > root->value) {
+            root->left->right = splay(root->left->right, element);
+
+            if ((root->left)->right != NULL) 
+                root->left = rotate_left(root->left);
+        }
+
+        return (root->left == NULL) ? root : rotate_right(root);
+    }
+    //Right
+    else {
+        if (root->right == NULL)
+            return root;
+        //Right - Left
+        if (element < (root->right)->value) {
+            (root->right)->left = splay((root->right)->left, element);
+
+            if ((root->right)->left != NULL)
+                root->right = rotate_right(root->right);
+        }
+        //Right - Right
+        else if (element > (root->right)->value) {
+            (root->right)->right = splay((root->right)->right, element);
+            root = rotate_left(root);
+        }
+
+        return (root->right == NULL) ? root : rotate_left(root);
+    }
 
 }
 
@@ -146,6 +248,10 @@ int main(int argc, char const *argv[])
             height = 0;
             tree1.root = insert(tree1.root, treeValue);
             cout << height << endl;
+            height = 0;
+            if (bst_search(tree1.root, treeValue) != NULL){
+                tree1.root = splay(tree1.root, treeValue);
+            }
         }
         else if (fstWord == "DEL") {
             cin >> treeValue;
@@ -153,7 +259,13 @@ int main(int argc, char const *argv[])
             tree1.root = bst_delete(tree1.root, treeValue);
             cout << height << endl;
         }
-
+        else if (fstWord == "PREO") {
+            height = 0;
+            pre_order(tree1.root);
+            cout << "\n";
+            printInorder(tree1.root);
+            cout << "\n";
+        }
     }
 
     return 0;
