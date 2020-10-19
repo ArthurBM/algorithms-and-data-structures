@@ -12,11 +12,13 @@ struct Node
     int value;
 };
 
-int height = 0;
-
 struct SplayTree {
     Node* root = NULL;
 };
+
+int height = 0;
+Node* father_from_deleted;
+
 
 void find(Node* root,  int element) {
     if (root == NULL)
@@ -50,7 +52,7 @@ Node* bst_search(Node* root,  int element) {
     }
 }
 
-Node* insert(Node* root, int element) {
+Node* bst_insert(Node* root, int element) {
     if (root == NULL) {
         Node* ptr = new Node();
         ptr->value = element;
@@ -61,16 +63,18 @@ Node* insert(Node* root, int element) {
     }
     else if (element < root->value) {
         height++;
-        root->left = insert(root->left, element);
+        root->left = bst_insert(root->left, element);
+
         if (root->left != NULL)
-            root = (root->left)->father;
+            (root->left)->father = root;
         return root;
     }
     else if (element > root->value) {
         height++;
-        root->right = insert(root->right, element);
+        root->right = bst_insert(root->right, element);
         if (root->right != NULL)
-            root = (root->right)->father;
+            (root->right)->father = root;
+
         return root;
     }
     //Se for igual
@@ -78,7 +82,7 @@ Node* insert(Node* root, int element) {
         return root;
     }
 }
-
+//Apaga o valor mínimo de uma árvore não nula
 std::pair<Node*, int> bst_delete_min(Node* root) {
     int val;
     if (root->left == NULL) {
@@ -115,26 +119,37 @@ Node* bst_delete(Node* root, int element) {
     //else if (element == root->value)
     //Vamos testar se o elemento a ser deletado não possui filho, possui só um filho, ou possui dois filhos
     else {
-        //Ou ele não tem nenhum filho ou tem um filho od lado direito
-        if (root->left == NULL) {
+        //Não tem filhos
+        if ((root->left == NULL) && (root->right == NULL)){
+            free(root);
+            return NULL;
+        }
+        //Tem um filho somente do lado direito
+        else if (root->left == NULL) {
             Node *ptr = root->right;
+            ptr->father = root->father;
+            father_from_deleted = root->father;
             free(root);
             return ptr;
         }
+        //Tem um filho somente do lado esquerdo
         else if (root->right == NULL) {
             Node *ptr = root->left;
+            ptr->father = root->father;
+            father_from_deleted = root->father;
             free(root);
             return ptr;
         }
-        //O nó vai ser o mesmo, você só vai mudar o valor
+        //Tem dois filhos
+        //O nó vai ser o mesmo, você só vai mudar o valor (Então não precisa atualizar o father)
         else {
             std::pair<Node*, int> result;
             // result = std::make_pair(root->right, root->value);
             result = bst_delete_min(root->right);
             root->right =  result.first;
             root->value = result.second;
+            father_from_deleted = root->father;
             return root;
-            
         }
     }
 }
@@ -161,22 +176,124 @@ void in_order(struct Node* root)
   
     /* now recur on right child */
     in_order(root->right); 
-} 
+}
 
+void post_order(Node* root) {
+    if (root == NULL) {
+        return;
+    }
+    post_order(root->left);
+    post_order(root->right);
+    cout << root->value << " ";
+}
 
 
 Node* rotate_left(Node* root) {
     Node* ptr = root->right;
+    Node* fat = root->father;
     root->right = ptr->left;
     ptr->left = root;
+
+    ptr->father = fat;
+    root->father = ptr;
     return ptr;
 }
 
 Node* rotate_right(Node* root) {
     Node* ptr = root->left;
+    Node* fat = root->father;
     root->left = ptr->right;
+
     ptr->right = root;
+
+    ptr->father = fat;
+    root->father = ptr;
     return ptr;
+}
+
+//Assumindo que element estará na bst, pois farei um find antes
+// Node* splay_2(Node* root, int element) {
+//     //Talvez não precise disso
+//     Node* fat = root->father;
+//     if (root == NULL)
+//         return NULL;
+
+//     else if (element < root->value) {
+//         root->left = splay_2(root->left, element);
+//         // root = rotate_right(fat);
+//         return root;
+//     }
+
+//     else if (element > root->value) {
+//         root->right = splay_2(root->right, element);
+//         // root = rotate_left(fat);
+//         return root;
+//     }
+
+//     //Se element == root->value
+//     else {
+//         if (fat == NULL) {
+//             return root;
+//         }
+//         else if ((fat->right)->value == element) {
+//             return rotate_left(fat);
+//         }
+//         else if ((fat->left)->value == element) {
+//             return rotate_right(fat);
+//         }
+//     }
+// }
+
+Node* splay_while(Node* root, int element) {
+    Node* cursor = bst_search(root, element);
+    Node* fat = cursor->father;
+    Node* ptr;
+
+    while (cursor  != root) {
+        //Se o pai for a raiz
+        if (cursor->father == root) {
+            if (cursor == fat->right) {
+                root = rotate_left(fat);
+            }
+            else if (cursor == fat->left) {
+                root = rotate_right(fat);
+            }
+            return root;
+        }
+
+        //Se o cursor tem um avô
+        else {
+            //O elemento é filho a direita?
+            if (cursor == fat->right) {
+                Node* ptr2 = fat->father;
+                ptr = rotate_left(fat);
+                ptr2->right = ptr;
+                ptr->father = ptr2;
+
+                if (ptr->father == NULL){
+                    // ptr = rotate_left(ptr->right);
+                    return ptr;
+                }
+                // (fat->father)->right = rotate_left(fat);
+            }
+            else if (cursor == fat->left) {
+                Node* ptr2 = fat->father;
+                ptr = rotate_left(fat);
+                ptr2->left = ptr;
+                ptr->father = ptr2;
+
+                if (ptr->father == NULL){
+                    // ptr = rotate_right(ptr->left);
+                    return ptr;
+                }
+                // (fat->father)->left = rotate_right(fat);
+            }
+        }
+        if (cursor != root) {
+            cursor = ptr;
+        }
+    }
+    
 }
 
 //Lembre que se o algoritmo não achar o valor desejado ele retorna o último valor acessado
@@ -252,11 +369,11 @@ int main(int argc, char const *argv[])
         else if (fstWord == "INS") {
             cin >> treeValue;
             height = 0;
-            tree1.root = insert(tree1.root, treeValue);
+            tree1.root = bst_insert(tree1.root, treeValue);
             cout << height << endl;
             height = 0;
-            if (bst_search(tree1.root, treeValue) != NULL)
-                tree1.root = splay(tree1.root, treeValue);
+            // if (bst_search(tree1.root, treeValue) != NULL)
+            tree1.root = splay_while(tree1.root, treeValue);
             
         }
         else if (fstWord == "DEL") {
@@ -264,12 +381,17 @@ int main(int argc, char const *argv[])
             height = 0;
             tree1.root = bst_delete(tree1.root, treeValue);
             cout << height << endl;
-        }
-        else if (fstWord == "PREO") {
             height = 0;
+            tree1.root = splay(tree1.root, father_from_deleted->value);
+        }
+        else if (fstWord == "ORD") {
+            height = 0;
+            cout << "PRE ORDER: ";
             pre_order(tree1.root);
-            cout << "\n";
+            cout << "\nIN ORDER: ";
             in_order(tree1.root);
+            cout << "\nPOST ORDER: ";
+            post_order(tree1.root);
             cout << "\n";
         }
     }
