@@ -1,19 +1,20 @@
+//MAX HEAP IMPLEMENTATION WITH THE USE OF DYNAMIC ARRAU IMPLEMENTATION
 #include <bits/stdc++.h>
 #define endl '\n'
 
 using namespace std;
 
 template <typename T>
-class Vec {
+class DinamycArray {
     private:
         int size=0;
         int capacity=1;
         T* arr=NULL;
     public:
-        Vec() {
+        DinamycArray() {
             arr = (T*) malloc(sizeof(T));
         }
-        ~Vec() {
+        ~DinamycArray() {
             size=0;
             capacity=0;
             free(arr);
@@ -26,7 +27,7 @@ class Vec {
             arr[size++] = e;
         }
         void pop_back() {
-            //Se for falso, parará a execução do programa
+            //If it's false, stop the program
             assert(size > 0);
             size--;
         }
@@ -51,9 +52,9 @@ class Vec {
 
 struct MaxHeap
 {
-    Vec<int> arrHeap;
+    DinamycArray<int> arrHeap;
 
-    //Um elemento da heap vai SUBINDO para que sua posição seja corrigida
+    //An element of the heap is going UP so that its position is corrected
     void bubble_up() {
         int i = arrHeap.getSize() -1;
         while (i > 0 && arrHeap[i] >= arrHeap[(i-1)/2]) {
@@ -67,7 +68,7 @@ struct MaxHeap
         bubble_up();
     }
 
-    //Um elemento da heap vai DESCENDO para que sua posição seja corrigida (==heapify)
+    //An element of the heap goes DOWN so that its position is corrected (== heapify)
     void bubble_down(int i) {
         int left, right, m;
         left = 2*i +1;
@@ -84,15 +85,14 @@ struct MaxHeap
         }
     }
 
-    //CUIDADO COM ESSE N/2 - 1, PODE DAR PAU
-    //Em árvores binárias completas, em geral o número de elementos que não são folhas é (n/2)-1
+    //In complete binary trees, in general the number of elements that are not leaves is (n / 2) -1
     void build_heap() {
         for (int i = 0; i < (arrHeap.getSize()/2) - 1; i++) {
             bubble_down(i);
         }
     }
 
-    //Deleta a raiz
+    //Delete root, putting last element on root. and reorder de heap
     void heap_extract() {
         int r = arrHeap[0];
         swap(arrHeap[0], arrHeap[arrHeap.getSize() - 1]);
@@ -102,13 +102,13 @@ struct MaxHeap
 };
 
 int main(int argc, char *argv[]) {
-    MaxHeap executing, waiting, ready;
+    MaxHeap heapTest;
     
-    executing.heap_insert(4);
-    executing.heap_insert(8);
-    executing.heap_insert(5);
-    executing.heap_insert(3);
-    executing.heap_extract();
-    executing.arrHeap.printArray();
+    heapTest.heap_insert(4);
+    heapTest.heap_insert(8);
+    heapTest.heap_insert(5);
+    heapTest.heap_insert(3);
+    heapTest.heap_extract();
+    heapTest.arrHeap.printArray();
     return 0;
 }
