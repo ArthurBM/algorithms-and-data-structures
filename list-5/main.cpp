@@ -77,10 +77,37 @@ void showpq(priority_queue<int, vector<int>, greater<int> > gq) {
 
 int main(int argc, char *argv[]) {
     // priority_queue <int, vector<int>, greater<int>> g;
-    Graph g(3);
+    Graph g;
     int num_nodes, designated_router;
-
+    int cur_neighbor, cur_weight;
+    int num_neighbors;
     
+        cin >> num_nodes;
+        cin >> designated_router;
+        g.setGraphSize(num_nodes);
 
+        do {
+
+            for (int adj_list_index = 0; adj_list_index < num_nodes; adj_list_index++) {
+
+                cin >> num_neighbors;
+
+                for (int z = 0; z < (2 * num_neighbors); z++) {
+                    if (z % 2 == 0) {
+                        cin >> cur_neighbor;
+                    }
+                    else if (z % 2 != 0) {
+                        cin >> cur_weight;
+                        g.addEdge(adj_list_index, cur_neighbor, cur_weight);
+                    }
+                }
+            }
+
+            g.showEdges();
+            num_nodes = 0; designated_router = 0; cur_neighbor = 0; cur_weight = 0; num_neighbors = 0;
+            
+        } while(cin.get() != '\n');
+        
+    
     return 0;
 }
