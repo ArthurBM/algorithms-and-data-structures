@@ -102,13 +102,14 @@ struct MaxHeap
 };
 
 int main(int argc, char *argv[]) {
-    MaxHeap heapTest;
+    MaxHeap ready, excecuting, waiting;
     
-    heapTest.heap_insert(4);
-    heapTest.heap_insert(8);
-    heapTest.heap_insert(5);
-    heapTest.heap_insert(3);
-    heapTest.heap_extract();
-    heapTest.arrHeap.printArray();
+    string fstWord = "", process = "", scicle = "";
+
+    while (fstWord != "END")
+    {
+        cin >> fstWord;
+
+    }
     return 0;
 }
