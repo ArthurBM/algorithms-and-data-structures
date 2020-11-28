@@ -4,6 +4,8 @@
 
 using namespace std;
 
+typedef pair<int, int> iPair; 
+
 // struct Graph2 {
 //     int num_vertices;
 //     list<Node> *adjList;
@@ -199,6 +201,72 @@ std::pair<vector<int>, vector<int> > djikstra(Graph2 gr, int origin) {
     return std::make_pair(distances, precursors);
     
 }
+
+class Graph3 {
+private:
+
+public:
+    int N;
+    list<Node> *adjList;
+
+    void setGraphSize(int nodeCount) {
+        N = nodeCount;
+        adjList = new list<Node>[N];
+    }
+
+    void addEdge(int position, int value, int band) {
+        Node newNode;
+        newNode.value = value;
+        newNode.band = band;
+        adjList[position].push_back(newNode);
+    }
+
+    int getGraphSize() {
+        return N;
+    }
+
+    std::pair<vector<int>, vector<int> > dijkstra(int origin) {
+        vector<int> dist(N, INFINITY);
+        vector<int> prec(N, INFINITY);
+        priority_queue< iPair, vector<iPair>, greater<iPair> > pq;
+
+        //Elo (v, d[v])
+        // Node* ptr = new Node();
+        // ptr->value = origin;
+        // ptr->band = 0;
+
+        pq.push(make_pair(0, origin));
+        dist[origin] = 0;
+        
+        while (!pq.empty()) {
+            //Aqui talvez seja cost
+            int u = pq.top().second;
+            pq.pop();
+
+            // 'i' is used to get all adjacent vertices of a vertex 
+            list< Node >::iterator i;
+            for (i = adjList[u].begin(); i != adjList[u].end(); ++i) {
+                int value = i->value;
+                int band = i->band;
+                int cost = i->cost;
+
+                if (dist[u] + (pow(2,20)/band) < dist[value]) {
+                    dist[value] = dist[u] + (pow(2,20)/band);
+                    prec[value] = u;
+                    // //Falta o heap update aqui (Será que vai precisar?)
+                    // Node* ptr2 = new Node();
+                    // ptr2->value = dist[value];
+                    // ptr2->band = pow(2, 20)/value;
+                    pq.push(make_pair(dist[value], value));
+                }
+
+            }
+        }
+
+        return (make_pair(dist, prec));
+    }
+
+};
 
 // Create a new node and return a pointer to it
 Node* newNode(int value, int band) {

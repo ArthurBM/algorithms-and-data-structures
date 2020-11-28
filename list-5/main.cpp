@@ -28,20 +28,25 @@ struct Node {
 
 struct MinHeap
 {
-    vector<Node> arrHeap;
+    //First is value and second is weight
+    vector<iPair> arrHeap;
+
+    void setArrSize(int n) {
+        arrHeap.resize(n, make_pair(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()));
+    }
 
     //An element of the heap is going UP so that its position is corrected
-    void bubble_up() {
-        int i = arrHeap.size() -1;
-        while (i > 0 && arrHeap[i].cost <= arrHeap[(i-1)/2].cost) {
+    void bubble_up(int i) {
+        // int i = arrHeap.size() -1;
+        while (i > 0 && arrHeap[i].second <= arrHeap[(i-1)/2].second) {
             swap(arrHeap[i], arrHeap[(i-1)/2]);
             i = (i-1)/2;
         }
     }
 
-    void heap_insert(Node value) {
+    void heap_insert(iPair value) {
         arrHeap.push_back(value);
-        bubble_up();
+        bubble_up(arrHeap.size() -1);
     }
 
     //An element of the heap goes DOWN so that its position is corrected (== heapify)
@@ -51,9 +56,9 @@ struct MinHeap
         right = 2*i +2;
         m = i;
         //A primeira parte do if é pra testar se a posição existe no array
-        if (left < arrHeap.size() && arrHeap[left].cost <= arrHeap[m].cost)
+        if (left < arrHeap.size() && arrHeap[left].second <= arrHeap[m].second)
             m = left;
-        if (right < arrHeap.size() && arrHeap[right].cost <= arrHeap[m].cost)
+        if (right < arrHeap.size() && arrHeap[right].second <= arrHeap[m].second)
             m = right;
         if (m != i) {
             swap(arrHeap[i], arrHeap[m]);
@@ -74,6 +79,33 @@ struct MinHeap
         arrHeap.pop_back();
         bubble_down(0);
     }
+
+    void heap_update(iPair p) {
+        if (arrHeap[p.first].second == std::numeric_limits<int>::max()) 
+            heap_insert(p);
+        
+        else 
+            bubble_up(p.first - 1);
+
+        // bool flag;
+        // for (int i = 0; i < arrHeap.size() - 1; i++) {
+        //     if (arrHeap[i].first == p.first){
+        //         flag = true; 
+        //         bubble_up(i);
+        //         break;
+        //     }
+        // }
+        // if (flag == false) {
+        //     heap_insert(p);
+        // }
+    }
+
+    bool isEmpty()  {
+        if (arrHeap.empty())
+            return true;
+        else 
+            return false;
+    }
 };
 
 class Graph {
@@ -92,6 +124,7 @@ public:
         Node newNode;
         newNode.value = value;
         newNode.band = band;
+        newNode.cost = pow(2, 20)/band;
         adjList[position].push_back(newNode);
     }
 
@@ -100,38 +133,32 @@ public:
     }
 
     std::pair<vector<int>, vector<int> > dijkstra(int origin) {
-        vector<int> dist(N, INFINITY);
-        vector<int> prec(N, INFINITY);
-        priority_queue< iPair, vector<iPair>, greater<iPair> > pq;
+        vector<int> dist(N, std::numeric_limits<int>::max());
+        vector<int> prec(N, -1);
+        MinHeap pq;
+        pq.setArrSize(N);
 
         //Elo (v, d[v])
-        // Node* ptr = new Node();
-        // ptr->value = origin;
-        // ptr->band = 0;
-
-        pq.push(make_pair(0, origin));
+        pq.heap_insert(make_pair(origin, 0));
         dist[origin] = 0;
         
-        while (!pq.empty()) {
-            //Aqui talvez seja cost
-            int u = pq.top().second;
-            pq.pop();
+        for (int count = 0; count< N; count++) {
+            //Get first element and remove it from heap
+            int u = pq.arrHeap.front().first;
+            pq.heap_extract();
 
             // 'i' is used to get all adjacent vertices of a vertex 
             list< Node >::iterator i;
             for (i = adjList[u].begin(); i != adjList[u].end(); ++i) {
                 int value = i->value;
                 int band = i->band;
-                int cost = i->cost;
+                int cost = pow(2,20)/band;
 
-                if (dist[u] + (pow(2,20)/band) < dist[value]) {
-                    dist[value] = dist[u] + (pow(2,20)/band);
+                if (dist[u] + cost < dist[value]) {
+                    dist[value] = dist[u] + cost;
                     prec[value] = u;
-                    // //Falta o heap update aqui (Será que vai precisar?)
-                    // Node* ptr2 = new Node();
-                    // ptr2->value = dist[value];
-                    // ptr2->band = pow(2, 20)/value;
-                    pq.push(make_pair(dist[value], value));
+                   
+                    pq.heap_update(make_pair(value, dist[value]));
                 }
 
             }
