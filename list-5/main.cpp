@@ -25,6 +25,57 @@ struct Node {
 //     }
 // };
 
+
+struct MinHeap
+{
+    vector<Node> arrHeap;
+
+    //An element of the heap is going UP so that its position is corrected
+    void bubble_up() {
+        int i = arrHeap.size() -1;
+        while (i > 0 && arrHeap[i].cost <= arrHeap[(i-1)/2].cost) {
+            swap(arrHeap[i], arrHeap[(i-1)/2]);
+            i = (i-1)/2;
+        }
+    }
+
+    void heap_insert(Node value) {
+        arrHeap.push_back(value);
+        bubble_up();
+    }
+
+    //An element of the heap goes DOWN so that its position is corrected (== heapify)
+    void bubble_down(int i) {
+        int left, right, m;
+        left = 2*i +1;
+        right = 2*i +2;
+        m = i;
+        //A primeira parte do if é pra testar se a posição existe no array
+        if (left < arrHeap.size() && arrHeap[left].cost <= arrHeap[m].cost)
+            m = left;
+        if (right < arrHeap.size() && arrHeap[right].cost <= arrHeap[m].cost)
+            m = right;
+        if (m != i) {
+            swap(arrHeap[i], arrHeap[m]);
+            bubble_down(m);
+        }
+    }
+
+    //In complete binary trees, in general the number of elements that are not leaves is (n / 2) -1
+    void build_heap() {
+        for (int i = 0; i < (arrHeap.size()/2) - 1; i++) {
+            bubble_down(i);
+        }
+    }
+
+    //Delete root, putting last element on root. and reorder de heap
+    void heap_extract() {
+        swap(arrHeap[0], arrHeap[arrHeap.size() - 1]);
+        arrHeap.pop_back();
+        bubble_down(0);
+    }
+};
+
 class Graph {
 private:
 
@@ -103,7 +154,6 @@ void showpq(priority_queue<int, vector<int>, greater<int> > gq) {
 
 
 int main(int argc, char *argv[]) {
-    // priority_queue <int, vector<int>, greater<int>> gr;
     Graph gr;
     pair<vector<int>, vector<int> > distPrec;
     int num_nodes, designated_router;
