@@ -17,6 +17,14 @@ struct Node {
     int cost = pow(2, 20)/band;
 };
 
+// class myComparator
+// {
+// public:
+//     int operator() (Node& value, Node& band, Node& cost) {
+//         return p1.getX() > p2.getX();
+//     }
+// };
+
 class Graph {
 private:
 
@@ -43,42 +51,42 @@ public:
     std::pair<vector<int>, vector<int> > dijkstra(int origin) {
         vector<int> dist(N, INFINITY);
         vector<int> prec(N, INFINITY);
-        priority_queue<Node, vector<Node>, greater<Node> > pq;
+        priority_queue< iPair, vector<iPair>, greater<iPair> > pq;
 
         //Elo (v, d[v])
-        Node* ptr = new Node();
-        ptr->value = origin;
-        ptr->band = 0;
+        // Node* ptr = new Node();
+        // ptr->value = origin;
+        // ptr->band = 0;
 
-        pq.push(*ptr);
+        pq.push(make_pair(0, origin));
         dist[origin] = 0;
         
         while (!pq.empty()) {
             //Aqui talvez seja cost
-            int u = pq.top().value;
+            int u = pq.top().second;
             pq.pop();
 
             // 'i' is used to get all adjacent vertices of a vertex 
-            list<Node>::iterator i;
+            list< Node >::iterator i;
             for (i = adjList[u].begin(); i != adjList[u].end(); ++i) {
-                int value = (*i).value;
-                int cost = (*i).cost;
+                int value = i->value;
+                int band = i->band;
+                int cost = i->cost;
 
-                if (dist[u] + cost < dist[value]) {
-                    dist[value] = dist[u] + cost;
+                if (dist[u] + (pow(2,20)/band) < dist[value]) {
+                    dist[value] = dist[u] + (pow(2,20)/band);
                     prec[value] = u;
-                    //Falta o heap update aqui
-                    Node* ptr2 = new Node();
-                    ptr2->value = dist[value];
-                    ptr2->band = pow(2, 20)/value;
-                    pq.push(*ptr2);
+                    // //Falta o heap update aqui (Será que vai precisar?)
+                    // Node* ptr2 = new Node();
+                    // ptr2->value = dist[value];
+                    // ptr2->band = pow(2, 20)/value;
+                    pq.push(make_pair(dist[value], value));
                 }
 
             }
         }
 
         return (make_pair(dist, prec));
-
     }
 
 };
@@ -97,6 +105,7 @@ void showpq(priority_queue<int, vector<int>, greater<int> > gq) {
 int main(int argc, char *argv[]) {
     // priority_queue <int, vector<int>, greater<int>> gr;
     Graph gr;
+    pair<vector<int>, vector<int> > distPrec;
     int num_nodes, designated_router;
     int cur_neighbor, cur_weight;
     int num_neighbors;
@@ -117,6 +126,13 @@ int main(int argc, char *argv[]) {
                     }
                 }
             }
+
+            distPrec = gr.dijkstra(designated_router);
+
+                // Print shortest distances stored in dist[] 
+            printf("Vertex   Distance from Source\n"); 
+            for (int i = 0; i < gr.getGraphSize(); ++i) 
+                printf("%d \t\t %d\n", i, (distPrec.first)[i]); 
 
             // gr.showEdges();
             num_nodes = 0; designated_router = 0; cur_neighbor = 0; cur_weight = 0; num_neighbors = 0;
