@@ -9,40 +9,24 @@
 
 using namespace std;
 
+typedef pair<int, int> iPair; 
+
 struct Node {
     int value;
     int band;
     int cost = pow(2, 20)/band;
-    Node* next;
 };
 
 class Graph {
 private:
-    // void showList(int src, list<Node> lt) {
-    //     list<Node> :: iterator i;
-    //     Node tempNode;
 
-    //     for(i = lt.begin(); i != lt.end(); i++) {
-    //         tempNode = *i;
-    //         cout << "(" << src << ")---("<< tempNode.value << "|"<<tempNode.band<<") ";
-    //     }
-    //     cout << endl;
-    // }
 public:
-    int n;
+    int N;
     list<Node> *adjList;
-    Graph() {
-        n=0;
-    }
-
-    Graph(int nodeCount) {
-        n = nodeCount;
-        adjList = new list<Node>[n];
-    }
 
     void setGraphSize(int nodeCount) {
-        n = nodeCount;
-        adjList = new list<Node>[n];
+        N = nodeCount;
+        adjList = new list<Node>[N];
     }
 
     void addEdge(int position, int value, int band) {
@@ -52,35 +36,52 @@ public:
         adjList[position].push_back(newNode);
     }
 
-    // void showEdges() {
-    //     for (int i = 0; i < n; i++) {
-    //         list<Node> tempList = adjList[i];
-    //         showList(i, tempList);
-    //     }   
-    // }
-
     int getGraphSize() {
-        return n;
+        return N;
+    }
+
+    std::pair<vector<int>, vector<int> > dijkstra(int origin) {
+        vector<int> dist(N, INFINITY);
+        vector<int> prec(N, INFINITY);
+        priority_queue<Node, vector<Node>, greater<Node> > pq;
+
+        //Elo (v, d[v])
+        Node* ptr = new Node();
+        ptr->value = origin;
+        ptr->band = 0;
+
+        pq.push(*ptr);
+        dist[origin] = 0;
+        
+        while (!pq.empty()) {
+            //Aqui talvez seja cost
+            int u = pq.top().value;
+            pq.pop();
+
+            // 'i' is used to get all adjacent vertices of a vertex 
+            list<Node>::iterator i;
+            for (i = adjList[u].begin(); i != adjList[u].end(); ++i) {
+                int value = (*i).value;
+                int cost = (*i).cost;
+
+                if (dist[u] + cost < dist[value]) {
+                    dist[value] = dist[u] + cost;
+                    prec[value] = u;
+                    //Falta o heap update aqui
+                    Node* ptr2 = new Node();
+                    ptr2->value = dist[value];
+                    ptr2->band = pow(2, 20)/value;
+                    pq.push(*ptr2);
+                }
+
+            }
+        }
+
+        return (make_pair(dist, prec));
+
     }
 
 };
-
-// struct Graph_with_node {
-//     int n;
-//     Node *adjlist;
-
-//     void setGraphSize(int nodeCount) {
-//         n = nodeCount;
-//         adjList = new Node[n];
-//     }
-
-//     void addEdge(int position, int value, int band) {
-//         Node newNode;
-//         newNode.value = value;
-//         newNode.band = band;
-//         adjList[position].push_back(newNode);
-//     }
-// };
 
 
 void showpq(priority_queue<int, vector<int>, greater<int> > gq) {
@@ -90,43 +91,6 @@ void showpq(priority_queue<int, vector<int>, greater<int> > gq) {
         gr.pop();
     }
     cout << '\n';
-}
-
-std::pair<vector<int>, vector<int>> djikstra(Graph gr, int origin) {
-    vector<int> distances(gr.getGraphSize(), INFINITY);
-    vector<int> precursors(gr.getGraphSize(), -1);
-    priority_queue<Node, vector<Node>, greater<Node> > min_heap;
-    int local_value, local_band, u, d;
-    Node *ptr, *e;
-
-    distances[origin] = 0;
-    // min_heap.push()
-    for (int k = 0; k < gr.getGraphSize() - 1; k++) {
-        
-        ptr = new Node();
-        ptr->value = origin;
-        ptr->band = 0;
-        min_heap.push(*ptr);
-        e = &(gr.adjList[k].front());
-
-        while (e != NULL) {
-            local_value = e->value;
-            local_band = e->band;
-            if ((distances[u] + local_band) < distances[local_value] ) {
-                distances[local_value] = distances[u] + local_band;
-                //Só falta colocar a parte de heap update aqui
-            }
-        }
-
-        // for (int i = 0; i < e.size(); i++) {
-        //     local_value = e[0].value;
-        //     local_band = e[0].band;
-
-        // }
-    }
-
-    return std::make_pair(distances, precursors);
-    
 }
 
 
