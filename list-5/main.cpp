@@ -158,26 +158,32 @@ public:
 
 };
 
-std::tuple<int, int> num_nodes_and_time_passed (vector<int> dist, vector<int> prec, int emissor, int receptor) {
+std::tuple<int, int> num_nodes_and_time_passed (vector<int> dist, vector<int> prec, int emissor, int receptor, int root) {
     int i = std::numeric_limits<int>::max();
     int count = 0;
     // vector<int> dist_ret(dist.size()), perc_ret(prec.size());
     //Isso supõe que sempre existe um caminho entre emissor e receptor
     while (i != emissor) {
-        if (count == 0){
+        //Emissor = raiz
+        if (emissor == receptor) {
+            break;
+        }
+
+        else if (count == 0){
             i = prec[receptor];
             count++;
         }
+
         else {
             if (prec[i] == -1) {
                 // count++;
                 break;
             }
-            else if (prec[i] == emissor) {
-                i = prec[i];
-                // count++;
-            }
-            else {
+            // else if (prec[i] == emissor) {
+            //     i = prec[i];
+            //     // count++;
+            // }
+            else if (i != emissor){
                 i = prec[i];
                 count++;
             }
@@ -185,7 +191,7 @@ std::tuple<int, int> num_nodes_and_time_passed (vector<int> dist, vector<int> pr
     }
     
     //Segundo parâmetro vai ser o tempo
-    return make_tuple(count -1 , 0);
+    return make_tuple(count, 0);
     // while (i != emissor) {
     //     if (count == 0){
     //         i = prec[receptor];
@@ -255,10 +261,10 @@ int main(int argc, char *argv[]) {
             }
 
             for (int count2 = 0; count2 < messages_num; count2++) {
-                tie(num_nodes_passed, time_local) = num_nodes_and_time_passed(dist, prec, emissor_vec[count2], designated_router);
-                tie(num_nodes_passed2, time_local2) = num_nodes_and_time_passed(dist, prec, designated_router, receptor_vec[count2]);
+                tie(num_nodes_passed, time_local) = num_nodes_and_time_passed(dist, prec, emissor_vec[count2], designated_router, designated_router);
+                // tie(num_nodes_passed2, time_local2) = num_nodes_and_time_passed(dist, prec, designated_router, receptor_vec[count2], designated_router);
 
-                cout << "Número de nós entre " << emissor_vec[count2] << " e " << receptor_vec[count2] << ": " << num_nodes_passed + num_nodes_passed2 << endl;
+                cout << "Número de nós entre " << emissor_vec[count2] << " e " << receptor_vec[count2] << ": " << num_nodes_passed << endl;
 
             }
 
