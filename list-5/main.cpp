@@ -6,6 +6,7 @@
 #include<list>
 #include<vector>
 #define endl '\n'
+#define infin std::numeric_limits<int>::max()
 
 using namespace std;
 
@@ -32,7 +33,7 @@ struct MinHeap
     vector<iPair> arrHeap;
 
     void setArrSize(int n) {
-        arrHeap.resize(n, make_pair(std::numeric_limits<int>::max(), std::numeric_limits<int>::max()));
+        arrHeap.resize(n, make_pair(infin, infin));
     }
 
     //An element of the heap is going UP so that its position is corrected
@@ -81,7 +82,7 @@ struct MinHeap
     }
 
     void heap_update(iPair p) {
-        if (arrHeap[p.first].second == std::numeric_limits<int>::max()) 
+        if (arrHeap[p.first].second == infin) 
             heap_insert(p);
         
         else 
@@ -120,8 +121,8 @@ public:
         return N;
     }
 
-    std::tuple<vector<int>, vector<int> > dijkstra(int origin) {
-        vector<int> dist(N, std::numeric_limits<int>::max());
+    std::tuple<vector<int>, vector<int> > dijkstra (int origin) {
+        vector<int> dist(N, infin);
         vector<int> prec(N, -1);
         MinHeap pq;
         pq.setArrSize(N);
@@ -132,7 +133,7 @@ public:
         
         for (int count = 0; count < N; count++) {
             //Get first element and remove it from heap
-            if (pq.arrHeap.front().first != std::numeric_limits<int>::max()) {
+            if (pq.arrHeap.front().first != infin) {
                 int u = pq.arrHeap.front().first;
                 pq.heap_extract();
 
@@ -146,8 +147,17 @@ public:
                     if (dist[u] + cost < dist[value]) {
                         dist[value] = dist[u] + cost;
                         prec[value] = u;
-                    
+
                         pq.heap_update(make_pair(value, dist[value]));
+                    }
+
+                    else if (dist[u] + cost == dist[value]) {
+                        if (u < value) {
+                            dist[value] = dist[u] + cost;
+                            prec[value] = u;
+
+                            pq.heap_update(make_pair(value, dist[value]));
+                        }
                     }
                 }
             }
@@ -158,61 +168,31 @@ public:
 
 };
 
-std::tuple<int, int> num_nodes_and_time_passed (vector<int> dist, vector<int> prec, int emissor, int receptor) {
+std::tuple<int, int> num_nodes_and_time_passed (vector<int> dist, vector<int> prec, int emissor, int receptor, int message_size) {
     int i = receptor;
-    int count = 0;
-    // vector<int> dist_ret(dist.size()), perc_ret(prec.size());
+    int count_nodes_passed = 0, time_passed = 0;
+
+    if (receptor != emissor) {
+        time_passed = (message_size/dist[i]);
+    }
     //Isso supõe que sempre existe um caminho entre emissor e receptor
-    //Como i é inicializado como receptor, se ele for igual ao emissor, ele nnem vai entrar no while
-
+    //Como i é inicializado como receptor, se ele for igual ao emissor, ele nem vai entrar no while
+    //O emissor vai ser sempre o DR
     while (i != emissor) {
-        //Emissor = raiz
-        // if (emissor == receptor) {
-        //     break;
-        // }
-
-        // else if (count == 0){
-        //     i = prec[receptor];
-        //     count++;
-        // }
         
         if (prec[i] == -1) {
-            // count++;
-            break;
-        }
-        // else if (prec[i] == emissor) {
-        //     i = prec[i];
-        //     // count++;
-        // }
-        else if (prec[i] == emissor){
-            i = prec[i];
-            cout << " -> " << i;
-            count++;
             break;
         }
 
         else {
+            if (i != emissor)
+                time_passed += (message_size/dist[i]);
             i = prec[i];
-            cout << " -> " << i;
-            count++;
+            count_nodes_passed++;
         }
-        cout << endl;
     }
-    
     //Segundo parâmetro vai ser o tempo
-    return make_tuple(count, 0);
-    // while (i != emissor) {
-    //     if (count == 0){
-    //         i = prec[receptor];
-    //     }
-    //     else {
-    //         if (prec[i] == -1)
-    //             break;
-    //         i = prec[i];
-    //     }
-    //     count++;
-    // }
-    
+    return make_tuple(count_nodes_passed, time_passed);
 }
 
 
@@ -236,7 +216,8 @@ int main(int argc, char *argv[]) {
     int emissor, receptor, message_size;
     int num_nodes_passed, time_local;
     int num_nodes_passed2, time_local2;
-    vector<int> emissor_vec, receptor_vec, num_nodes_passed_vec;
+    int count_global = 0;
+    vector<int> emissor_vec, receptor_vec, message_size_vec;
 
         while(cin >> num_nodes >> designated_router) {
             gr.setGraphSize(num_nodes);
@@ -261,33 +242,35 @@ int main(int argc, char *argv[]) {
             for (int count = 0; count < messages_num; count++) {
                 cin >> emissor >> receptor >> message_size;
                 
-                emissor_vec.push_back(emissor); receptor_vec.push_back(receptor);
-                // printf("Numero de nós percorridos entre %d e %d: %d\n",emissor, receptor, num_nodes_passed);
-                // cout << "Número de nós entre " << emissor << "e " << receptor << ": " << num_nodes_passed << endl;
+                emissor_vec.push_back(emissor); receptor_vec.push_back(receptor); message_size_vec.push_back(message_size);
                 //Chamar função para saber:
                 //1. número de nós intermédios pelos quais a mensagem passa na sua rota do emissor até o receptor (excluindo emissor e receptor)
                 //2. O custo total do caminho (Tempo) - emissor até DR + DR até receptor
             }
 
+            cout << "caso " << count_global << ":" <<  endl;
             for (int count2 = 0; count2 < messages_num; count2++) {
-                tie(num_nodes_passed, time_local) = num_nodes_and_time_passed(dist, prec, designated_router, emissor_vec[count2]);
-                tie(num_nodes_passed2, time_local2) = num_nodes_and_time_passed(dist, prec, designated_router, receptor_vec[count2]);
+                tie(num_nodes_passed, time_local) = num_nodes_and_time_passed(dist, prec, designated_router, emissor_vec[count2], message_size_vec[count2]);
+                tie(num_nodes_passed2, time_local2) = num_nodes_and_time_passed(dist, prec, designated_router, receptor_vec[count2], message_size_vec[count2]);
 
-                cout << "Número de nós entre " << emissor_vec[count2] << " e " << receptor_vec[count2] << ": " << (num_nodes_passed + num_nodes_passed2 - 1) << endl;
+                // cout << "Número de nós / Tempo entre " << emissor_vec[count2] << " e " << receptor_vec[count2] << ": " << (num_nodes_passed + num_nodes_passed2 - 1) << (time_local + time_local2) << endl;
+                // printf("Numero de nós / Tempo entre %d e %d: %d, %d\n", emissor_vec[count2], receptor_vec[count2], (num_nodes_passed + num_nodes_passed2 - 1), (time_local + time_local2));
+                printf("%d %d\n", (num_nodes_passed + num_nodes_passed2 - 1), (time_local + time_local2));
 
             }
 
 
 
             // Print shortest distances stored in dist[] 
-            printf("Vertex   Distance from Source   Precursor\n"); 
-            for (int i = 0; i < gr.getGraphSize(); ++i) 
-                printf("%d \t\t %d \t\t %d\n", i, dist[i], prec[i]); 
+            // printf("Vertex   Distance from Source   Precursor\n"); 
+            // for (int i = 0; i < gr.getGraphSize(); ++i) 
+            //     printf("%d \t\t %d \t\t %d\n", i, dist[i], prec[i]); 
 
             // gr.showEdges();
             num_nodes = 0; designated_router = 0; cur_neighbor = 0; cur_weight = 0; num_neighbors = 0; messages_num = 0;
             emissor = 0; receptor = 0; message_size = 0;
-            emissor_vec.clear(); receptor_vec.clear(); num_nodes_passed_vec.clear();
+            emissor_vec.clear(); receptor_vec.clear(); message_size_vec.clear();
+            count_global++;
             
         }
         

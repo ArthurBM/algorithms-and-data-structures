@@ -268,6 +268,60 @@ public:
 
 };
 
+std::tuple<int, int> num_nodes_and_time_passed (vector<int> dist, vector<int> prec, int emissor, int receptor) {
+    int i = receptor;
+    int count = 0;
+    // vector<int> dist_ret(dist.size()), perc_ret(prec.size());
+    //Isso supõe que sempre existe um caminho entre emissor e receptor
+    //Como i é inicializado como receptor, se ele for igual ao emissor, ele nnem vai entrar no while
+
+    while (i != emissor) {
+        //Emissor = raiz
+        // if (emissor == receptor) {
+        //     break;
+        // }
+
+        // else if (count == 0){
+        //     i = prec[receptor];
+        //     count++;
+        // }
+        
+        if (prec[i] == -1) {
+            // count++;
+            break;
+        }
+        //Esse  else if eu tirei da versão original, não era necessário
+        else if (prec[i] == emissor){
+            i = prec[i];
+            cout << " -> " << i;
+            count++;
+            break;
+        }
+
+        else {
+            i = prec[i];
+            cout << " -> " << i;
+            count++;
+        }
+        cout << endl;
+    }
+    
+    //Segundo parâmetro vai ser o tempo
+    return make_tuple(count, 0);
+    // while (i != emissor) {
+    //     if (count == 0){
+    //         i = prec[receptor];
+    //     }
+    //     else {
+    //         if (prec[i] == -1)
+    //             break;
+    //         i = prec[i];
+    //     }
+    //     count++;
+    // }
+    
+}
+
 // Create a new node and return a pointer to it
 Node* newNode(int value, int band) {
     Node* newNode = new Node;
